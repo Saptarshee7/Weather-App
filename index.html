@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: url('images/pexels-tahir-shaw-50609-186980.jpg') no-repeat center center fixed;
+            background-size: cover;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+        .container {
+            max-width: 400px;
+            margin: 50px auto;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.3);
+        }
+        input {
+            width: 80%;
+            padding: 10px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            background: #ff9800;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+        }
+        .weather-info {
+            margin-top: 20px;
+        }
+        .forecast {
+            display: flex;
+            overflow-x: auto;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+        }
+        .forecast div {
+            min-width: 100px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px;
+            border-radius: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Weather App</h2>
+        <input type="text" id="location" placeholder="Enter location" onkeypress="handleKeyPress(event)">
+        <button onclick="getWeather()">Get Weather</button>
+        <div class="weather-info" id="weatherInfo"></div>
+        <div class="forecast" id="forecast"></div>
+    </div>
+
+    <script>
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                getWeather();
+            }
+        }
+
+        function getWeather() {
+            const location = document.getElementById('location').value;
+            if (!location) {
+                alert('Please enter a location');
+                return;
+            }
+            
+            fetch(`http://api.weatherapi.com/v1/forecast.json?key=d618a80ec94c43e0bd6150152252303&q=${location}&days=7&aqi=yes`)
+                .then(response => response.json())
+                .then(data => {
+                    const weatherInfo = `
+                        <h3>${data.location.name}, ${data.location.country}</h3>
+                        <p>Temperature: ${data.current.temp_c}°C</p>
+                        <p>Condition: ${data.current.condition.text}</p>
+                        <p>Humidity: ${data.current.humidity}%</p>
+                        <p>Wind Speed: ${data.current.wind_kph} km/h</p>
+                        <p>Air Quality: ${data.current.air_quality.pm2_5} PM2.5</p>
+                        <p>Sunrise: ${data.forecast.forecastday[0].astro.sunrise}</p>
+                        <p>Sunset: ${data.forecast.forecastday[0].astro.sunset}</p>
+                        <p>UV Index: ${data.current.uv}</p>
+                        <img src="${data.current.condition.icon}" alt="Weather icon">
+                    `;
+                    document.getElementById('weatherInfo').innerHTML = weatherInfo;
+                    
+                    let forecastHTML = '';
+                    data.forecast.forecastday.forEach(day => {
+                        forecastHTML += `
+                            <div>
+                                <p>${day.date}</p>
+                                <img src="${day.day.condition.icon}" alt="Weather icon">
+                                <p>${day.day.avgtemp_c}°C</p>
+                            </div>
+                        `;
+                    });
+                    document.getElementById('forecast').innerHTML = forecastHTML;
+                })
+                .catch(error => {
+                    document.getElementById('weatherInfo').innerHTML = '<p>Location not found. Try again.</p>';
+                });
+        }
+    </script>
+</body>
+</html>
